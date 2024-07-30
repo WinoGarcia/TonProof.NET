@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+        <TargetFrameworks>net8.0;net6.0;net7.0</TargetFrameworks>
+        <Version>0.1.0</Version>
+        <Title>TonProof</Title>
+        <Authors>Alexander Shitov</Authors>
+        <Description>TonProof validates proof requests from TonConnect</Description>
+        <Copyright>Copyright © Alexander Shitov, 2024</Copyright>
+        <PackageProjectUrl>https://github.com/WinoGarcia/TonProof.NET</PackageProjectUrl>
+        <RepositoryUrl>git@github.com/WinoGarcia/TonProof.NET.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>ton-connect, ton, toncoin, the-open-network</PackageTags>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <AssemblyVersion>0.1.0</AssemblyVersion>
+        <FileVersion>0.1.0</FileVersion>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <RootNamespace>TonProof</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="..\LICENSE">
+            <Pack>True</Pack>
+            <PackagePath>\</PackagePath>
+        </None>
+        <None Include="..\README.md">
+            <Pack>True</Pack>
+            <PackagePath>\</PackagePath>
+        </None>
+    </ItemGroup>
+    
+    <ItemGroup>
+      <PackageReference Include="NSec.Cryptography" Version="24.4.0" />
+      <PackageReference Include="TonLib.Net" Version="0.21.3" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("***REMOVED***FAE04EC0-301F-11D3-BF4B-00C04F79EFBC***REMOVED***") = "TonProof", "TonProof\TonProof.csproj", "***REMOVED***8D1900FD-4602-44CE-B124-3D5C4FDDF121***REMOVED***"
+EndProject
+Project("***REMOVED***FAE04EC0-301F-11D3-BF4B-00C04F79EFBC***REMOVED***") = "TonProof.Demo", "TonProof.Demo\TonProof.Demo.csproj", "***REMOVED***86607E81-74CD-4E7F-978A-1589A57E7323***REMOVED***"
+EndProject
+Project("***REMOVED***FAE04EC0-301F-11D3-BF4B-00C04F79EFBC***REMOVED***") = "TonProof.Tests", "TonProof.Tests\TonProof.Tests.csproj", "***REMOVED***39B49E62-F447-4B04-8A77-F9ED1CABF352***REMOVED***"
+EndProject
+Project("***REMOVED***2150E333-8FDC-42A3-9474-1A3956D46DE8***REMOVED***") = "Solution Items", "Solution Items", "***REMOVED***9A97DA5F-8DC5-4582-B52B-ABD990421820***REMOVED***"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		***REMOVED***8D1900FD-4602-44CE-B124-3D5C4FDDF121***REMOVED***.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		***REMOVED***8D1900FD-4602-44CE-B124-3D5C4FDDF121***REMOVED***.Debug|Any CPU.Build.0 = Debug|Any CPU
+		***REMOVED***8D1900FD-4602-44CE-B124-3D5C4FDDF121***REMOVED***.Release|Any CPU.ActiveCfg = Release|Any CPU
+		***REMOVED***8D1900FD-4602-44CE-B124-3D5C4FDDF121***REMOVED***.Release|Any CPU.Build.0 = Release|Any CPU
+		***REMOVED***86607E81-74CD-4E7F-978A-1589A57E7323***REMOVED***.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		***REMOVED***86607E81-74CD-4E7F-978A-1589A57E7323***REMOVED***.Debug|Any CPU.Build.0 = Debug|Any CPU
+		***REMOVED***86607E81-74CD-4E7F-978A-1589A57E7323***REMOVED***.Release|Any CPU.ActiveCfg = Release|Any CPU
+		***REMOVED***86607E81-74CD-4E7F-978A-1589A57E7323***REMOVED***.Release|Any CPU.Build.0 = Release|Any CPU
+		***REMOVED***39B49E62-F447-4B04-8A77-F9ED1CABF352***REMOVED***.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		***REMOVED***39B49E62-F447-4B04-8A77-F9ED1CABF352***REMOVED***.Debug|Any CPU.Build.0 = Debug|Any CPU
+		***REMOVED***39B49E62-F447-4B04-8A77-F9ED1CABF352***REMOVED***.Release|Any CPU.ActiveCfg = Release|Any CPU
+		***REMOVED***39B49E62-F447-4B04-8A77-F9ED1CABF352***REMOVED***.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
