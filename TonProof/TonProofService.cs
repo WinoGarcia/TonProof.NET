@@ -2,13 +2,12 @@
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NSec.Cryptography;
 using TonProof.Extensions;
 using TonProof.Types;
 using TonLibDotNet;
 using TonLibDotNet.Cells;
-using TonLibDotNet.Types;
-using TonLibDotNet.Types.Smc;
 using TonLibDotNet.Utils;
 
 namespace TonProof;
@@ -19,6 +18,7 @@ public class TonProofService : ITonProofService
     #region Private Fields
 
     private readonly ITonClient tonClient;
+    private readonly IPublicKeyProvider publicKeyProvider;
     private readonly TonProofOptions options;
     private readonly ILogger<TonProofService> logger;
 
@@ -32,10 +32,12 @@ public class TonProofService : ITonProofService
     public TonProofService(
         ILogger<TonProofService> logger,
         ITonClient tonClient,
-        Microsoft.Extensions.Options.IOptions<TonProofOptions> options)
+        IPublicKeyProvider publicKeyProvider,
+        IOptions<TonProofOptions> options)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.tonClient = tonClient ?? throw new ArgumentNullException(nameof(tonClient));
+        this.publicKeyProvider = publicKeyProvider ?? throw new ArgumentNullException(nameof(publicKeyProvider));
         this.options = options.Value;
 
         this.tonConnectPrefixBytes = Encoding.UTF8.GetBytes(this.options.TonConnectPrefix);
@@ -51,6 +53,14 @@ public class TonProofService : ITonProofService
     {
         var requestRaw = new CheckProofRequestRaw(request);
 
+        if (!requestRaw.Workchain.HasValue)
+        {
+            this.logger.LogDebug(
+                "Address {Address} is invalid. The address provided lacks the correct format and omits a workchain",
+                request.Address);
+            return VerifyResult.InvalidAddress;
+        }
+        
         if (requestRaw.InitState is null)
         {
             this.logger.LogDebug(
@@ -63,7 +73,7 @@ public class TonProofService : ITonProofService
 
         var publicKey = isParsed
             ? walletPublicKey
-            : await this.GetWalletPublicKeyAsync(new AccountAddress(requestRaw.Address), cancellationToken).ConfigureAwait(false);
+            : await this.publicKeyProvider.GetPublicKeyAsync(requestRaw.Address, cancellationToken);
 
         if (!requestRaw.PublicKeyBytes.SequenceEqual(publicKey))
         {
@@ -119,26 +129,10 @@ public class TonProofService : ITonProofService
 
     #region Private Methods
 
-    private async Task<byte[]> GetWalletPublicKeyAsync(AccountAddress address, CancellationToken cancellationToken)
-    {
-        await this.tonClient.InitIfNeededAsync(cancellationToken).ConfigureAwait(false);
-        await this.tonClient.SyncAsync(cancellationToken).ConfigureAwait(false);
-        var smc = await this.tonClient.SmcLoadAsync(address, cancellationToken).ConfigureAwait(false);
-
-        var smcPublicKey = await this.tonClient
-            .SmcRunGetMethodAsync(smc.Id, new MethodIdName("get_public_key"), cancellationToken: cancellationToken)
-            .ConfigureAwait(false);
-        await this.tonClient.SmcForgetAsync(smc.Id, cancellationToken).ConfigureAwait(false);
-
-        TonLibNonZeroExitCodeException.ThrowIfNonZero(smcPublicKey.ExitCode);
-
-        return smcPublicKey.Stack[0].ToBigIntegerBytes();
-    }
-
     private byte[] CreateMessage(CheckProofRequestRaw request)
     {
         Span<byte> wc = stackalloc byte[4];
-        BinaryPrimitives.WriteUInt32BigEndian(wc, request.Workchain);
+        BinaryPrimitives.WriteUInt32BigEndian(wc, request.Workchain!.Value);
 
         Span<byte> ts = stackalloc byte[8];
         BinaryPrimitives.WriteUInt64LittleEndian(ts, (ulong)request.Proof.Timestamp);

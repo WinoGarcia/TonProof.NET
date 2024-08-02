@@ -4,7 +4,7 @@ using Moq;
 using TonLibDotNet;
 using TonLibDotNet.Types;
 
-namespace TonProof.Tests;
+namespace TonProof.Tests.Fixtures;
 
 public abstract class TonProofServiceFixtureBase : IDisposable
 {
@@ -22,15 +22,18 @@ public abstract class TonProofServiceFixtureBase : IDisposable
                 TonOptions o = new()
                 {
                     UseMainnet = useMainnet,
+                    LogTextLimit = 0,
                     Options =
                     {
-                        KeystoreType = new KeyStoreTypeInMemory()
+                        KeystoreType = new KeyStoreTypeDirectory("D:/Temp/keys") //new KeyStoreTypeInMemory() 
                     }
                 };
                 return o;
             });
 
         this.tonClient = new TonClient(tonClientLogger.Object, tonClientOptions.Object);
+        
+        var publicKeyProvider = new TonLibPublicKeyProvider(this.tonClient);
 
         var proofCheckLogger = new Mock<ILogger<TonProofService>>(MockBehavior.Loose);
         var proofCheckOptions = new Mock<IOptions<TonProofOptions>>(MockBehavior.Strict);
@@ -45,10 +48,17 @@ public abstract class TonProofServiceFixtureBase : IDisposable
                 };
                 return o;
             });
-        this.tonProofService = new TonProofService(proofCheckLogger.Object, this.tonClient, proofCheckOptions.Object);
+        this.tonProofService = new TonProofService(proofCheckLogger.Object, this.tonClient, publicKeyProvider, proofCheckOptions.Object);
     }
 
-    public ITonProofService GetProofCheckService() => this.tonProofService;
+    public async Task<ITonProofService> GetProofCheckServiceAsync()
+    {
+        //await this.tonClient.InitIfNeeded();
+        //await this.tonClient.Sync();
+        
+        return this.tonProofService;
+    }
+    
 
     public void Dispose()
     {

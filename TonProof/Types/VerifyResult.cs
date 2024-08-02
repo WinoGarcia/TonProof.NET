@@ -36,7 +36,12 @@ public enum VerifyResult
     ProofExpired = -5,
 
     /// <summary>
-    /// Invalid InitState structure 
+    /// Invalid InitState structure.
     /// </summary>
-    InvalidInitState = -6
+    InvalidInitState = -6,
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    InvalidAddress = -7
 }

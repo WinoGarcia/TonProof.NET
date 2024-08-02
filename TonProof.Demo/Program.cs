@@ -18,7 +18,7 @@ builder.Services.Configure<SettingOptions>(
 builder.Services.Configure<TonOptions>(o =>
 {
     o.UseMainnet = false;
-    o.LogTextLimit = 0; // Set to 0 to see full requests/responses
+    o.LogTextLimit = 500; // Set to 0 to see full requests/responses
     o.VerbosityLevel = 0;
     o.Options.KeystoreType = new KeyStoreTypeDirectory("D:/Temp/keys");
 });
@@ -34,6 +34,7 @@ builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwa
 
 // Add services to the container.
 builder.Services.AddSingleton<ITonClient, TonClient>();
+builder.Services.AddSingleton<IPublicKeyProvider, TonLibPublicKeyProvider>();
 builder.Services.AddSingleton<ITonProofService, TonProofService>();
 
 var settingOptions = configuration.GetSection(SettingOptions.Tokens).Get<SettingOptions>();
