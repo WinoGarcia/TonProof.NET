@@ -13,7 +13,6 @@ internal sealed class CheckProofRequestRaw : CheckProofRequest
         this.Address = request.Address;
         this.Network = request.Network;
         this.PublicKey = request.PublicKey;
-        this.PublicKeyBytes = Convert.FromHexString(this.PublicKey);
         this.Proof = request.Proof;
 
         var addressSpan = this.Address.AsSpan();
@@ -51,8 +50,6 @@ internal sealed class CheckProofRequestRaw : CheckProofRequest
     public byte[] AddressBytes { get; private set; }
 
     public uint? Workchain { get; private set; }
-
-    public byte[] PublicKeyBytes { get; private set; }
 
     public InitialAccountState InitState { get; private set; }
 

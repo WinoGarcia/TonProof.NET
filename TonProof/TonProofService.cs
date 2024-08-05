@@ -1,4 +1,5 @@
 ﻿using System.Buffers.Binary;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Logging;
@@ -60,7 +61,7 @@ public class TonProofService : ITonProofService
                 request.Address);
             return VerifyResult.InvalidAddress;
         }
-        
+
         if (requestRaw.InitState is null)
         {
             this.logger.LogDebug(
@@ -75,12 +76,12 @@ public class TonProofService : ITonProofService
             ? walletPublicKey
             : await this.publicKeyProvider.GetPublicKeyAsync(requestRaw.Address, cancellationToken);
 
-        if (!requestRaw.PublicKeyBytes.SequenceEqual(publicKey))
+        if (!requestRaw.PublicKey.Equals(publicKey, StringComparison.OrdinalIgnoreCase))
         {
             this.logger.LogDebug(
                 "Public key mismatch: provided public key {ProvidedPk} does not match the parsed or retrieved public key {RetrievedPk}",
                 requestRaw.PublicKey,
-                Convert.ToHexString(publicKey));
+                publicKey);
             return VerifyResult.PublicKeyMismatch;
         }
 
@@ -116,11 +117,17 @@ public class TonProofService : ITonProofService
 
         var msg = this.CreateMessage(requestRaw);
         var msgHash = SHA256.HashData(msg);
-
         var algorithm = SignatureAlgorithm.Ed25519;
-        var pKey = PublicKey.Import(algorithm, requestRaw.PublicKeyBytes, KeyBlobFormat.RawPublicKey);
+        
+        var pKey = PublicKey.Import(
+            algorithm,
+            Convert.FromHexString(requestRaw.PublicKey).AsSpan(),
+            KeyBlobFormat.RawPublicKey);
 
-        var result = algorithm.Verify(pKey, msgHash, Convert.FromBase64String(requestRaw.Proof.Signature));
+        var result = algorithm.Verify(
+            pKey,
+            msgHash,
+            Convert.FromBase64String(requestRaw.Proof.Signature).AsSpan());
 
         return result ? VerifyResult.Valid : VerifyResult.HashMismatch;
     }
@@ -183,7 +190,7 @@ public class TonProofService : ITonProofService
         return message.ToArray();
     }
 
-    private bool TryParseWalletPublicKey(string code, Cell data, out byte[] publicKey)
+    private bool TryParseWalletPublicKey(string code, Cell data, [NotNullWhen(true)] out string publicKey)
     {
         if (this.options.KnownWallets.TryGetValue(code, out var knownWallet))
         {
@@ -194,7 +201,7 @@ public class TonProofService : ITonProofService
 
         this.logger.LogDebug("Failed to parse wallet publicKey for unknown code: {Code}", code);
 
-        publicKey = Array.Empty<byte>();
+        publicKey = null;
         return false;
     }
 

@@ -4,5 +4,5 @@ namespace TonProof.Types.Wallets;
 
 public interface IWalletContract
 {
-    byte[] LoadPublicKey(Cell data);
+    string LoadPublicKey(Cell data);
 }

@@ -15,6 +15,9 @@ var configuration = builder.Configuration;
 builder.Services.Configure<SettingOptions>(
     configuration.GetSection(SettingOptions.Tokens));
 
+builder.Services.Configure<TonApiSettings>(
+    configuration.GetSection(TonApiSettings.TonApi));
+
 builder.Services.Configure<TonOptions>(o =>
 {
     o.UseMainnet = false;
@@ -29,12 +32,25 @@ builder.Services.Configure<TonProofOptions>(o =>
     o.AllowedDomains = ["winogarcia.github.io"];
 });
 
+var tonApiOptions = configuration.GetSection(TonApiSettings.TonApi).Get<TonApiSettings>();
+builder.Services.AddHttpClient<IPublicKeyProvider>(
+    "TonApiHttpClient",
+    client =>
+    {
+        client.BaseAddress = new Uri(tonApiOptions.BaseAddress);
+        if (!string.IsNullOrEmpty(tonApiOptions.Token))
+        {
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tonApiOptions.Token}");
+        }
+    }).AddStandardResilienceHandler();
+
 builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
 // Add services to the container.
 builder.Services.AddSingleton<ITonClient, TonClient>();
-builder.Services.AddSingleton<IPublicKeyProvider, TonLibPublicKeyProvider>();
+//builder.Services.AddSingleton<IPublicKeyProvider, TonLibPublicKeyProvider>();
+builder.Services.AddSingleton<IPublicKeyProvider, TonApiPublicKeyProvider>();
 builder.Services.AddSingleton<ITonProofService, TonProofService>();
 
 var settingOptions = configuration.GetSection(SettingOptions.Tokens).Get<SettingOptions>();

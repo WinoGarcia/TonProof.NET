@@ -32,7 +32,7 @@ public abstract class TonProofServiceFixtureBase : IDisposable
             });
 
         this.tonClient = new TonClient(tonClientLogger.Object, tonClientOptions.Object);
-        
+
         var publicKeyProvider = new TonLibPublicKeyProvider(this.tonClient);
 
         var proofCheckLogger = new Mock<ILogger<TonProofService>>(MockBehavior.Loose);
@@ -55,10 +55,10 @@ public abstract class TonProofServiceFixtureBase : IDisposable
     {
         //await this.tonClient.InitIfNeeded();
         //await this.tonClient.Sync();
-        
+        //
         return this.tonProofService;
     }
-    
+
 
     public void Dispose()
     {

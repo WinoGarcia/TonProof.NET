@@ -8,11 +8,11 @@ internal class WalletContractV3R1 : IWalletContract
 
     public static WalletContractV3R1 Create() => new();
     
-    public byte[] LoadPublicKey(Cell data)
+    public string LoadPublicKey(Cell data)
     {
         var dataSlice = data.BeginRead();
         dataSlice.SkipBits(32); //seqno
         dataSlice.SkipBits(32); //walletId
-        return dataSlice.LoadBytes(32); //publicKey
+        return Convert.ToHexString(dataSlice.LoadBytes(32)); //publicKey
     }
 }

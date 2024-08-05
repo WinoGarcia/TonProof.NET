@@ -13,7 +13,7 @@ namespace TonProof;
 /// <remarks>
 /// The TonClient uses a direct connection to the LiteServer to retrieve the public key.
 /// </remarks>
-public class TonLibPublicKeyProvider : IPublicKeyProvider
+public class TonLibPublicKeyProvider : IPublicKeyProvider, IDisposable
 {
     #region Private Fields
 
@@ -38,7 +38,7 @@ public class TonLibPublicKeyProvider : IPublicKeyProvider
     /// <param name="address">The address of the wallet.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns></returns>
-    public async Task<byte[]> GetPublicKeyAsync(string address, CancellationToken cancellationToken = default)
+    public async Task<string> GetPublicKeyAsync(string address, CancellationToken cancellationToken = default)
     {
         await this.tonClient.InitIfNeeded().ConfigureAwait(false);
         await this.tonClient.Sync().ConfigureAwait(false);
@@ -51,8 +51,13 @@ public class TonLibPublicKeyProvider : IPublicKeyProvider
 
         TonLibNonZeroExitCodeException.ThrowIfNonZero(smcPublicKey.ExitCode);
 
-        return smcPublicKey.Stack[0].ToBigIntegerBytes();
+        return Convert.ToHexString(smcPublicKey.Stack[0].ToBigIntegerBytes());
     }
 
     #endregion
+
+    public void Dispose()
+    {
+        // TODO release managed resources here
+    }
 }
