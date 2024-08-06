@@ -16,21 +16,35 @@ Set up the [TonProofOptions](/TonProof/TonProofOptions.cs) with appropriate valu
 
 Example configuration:
 ```csharp
-var builder = WebApplication.CreateBuilder(args);
-
 builder.Services.Configure<TonProofOptions>(o =>
 {
   o.ValidAuthTime = 30 * 60; // 30 minutes
   o.AllowedDomains = new[] { "example.com" };
-  // Add other known wallet contracts...
-  // o.KnownWallets.Add(WalletContractV5.CodeBase64, WalletContractV5.Create);
+  // o.KnownWallets.Add(WalletContractV5.CodeBase64, WalletContractV5.Create); // Add other known wallet contracts
 });
+
+builder.Services.AddHttpClient<IPublicKeyProvider, TonApiPublicKeyProvider>(
+  client =>
+  {
+    client.BaseAddress = new Uri(tonApiOptions.BaseAddress);
+    if (!string.IsNullOrEmpty(tonApiOptions.Token))
+    {
+      client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tonApiOptions.Token}");
+    }
+  }).AddStandardResilienceHandler();
 
 builder.Services.AddSingleton<ITonClient, TonClient>();
 builder.Services.AddSingleton<ITonProofService, TonProofService>();
-
-var app = builder.Build();
 ```
+
+If the public key cannot be extracted from the `InitState` of the [known wallets](/TonProof/Types/Wallets), the service will call the `GetPublicKeyAsync` method from the [IPublicKeyProvider](/TonProof/Providers/IPublicKeyProvider.cs).
+
+The library offers the `IPublicKeyProvider` interface with two implementations:  
+- **TonLibPublicKeyProvider** calls `get_public_key` method on the smart contract via Lite server.  
+- **TonApiPublicKeyProvider** calls the HTTP method from [TonApi](https://tonapi.io/).
+
+If these providers don't fit your requirements, you can create your own by implementing the `IPublicKeyProvider` interface.
+
 For more information, please refer to the complete example [TonProof.Demo/Program.cs](/TonProof.Demo/Program.cs)
 
 ### Using the service for authentication
