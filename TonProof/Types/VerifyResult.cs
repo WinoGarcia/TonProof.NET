@@ -41,7 +41,7 @@ public enum VerifyResult
     InvalidInitState = -6,
     
     /// <summary>
-    /// 
+    /// The address lacks the correct format and omits a workchain.
     /// </summary>
     InvalidAddress = -7
 }

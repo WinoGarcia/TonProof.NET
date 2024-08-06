@@ -21,7 +21,7 @@ builder.Services.Configure<TonApiSettings>(
 builder.Services.Configure<TonOptions>(o =>
 {
     o.UseMainnet = false;
-    o.LogTextLimit = 500; // Set to 0 to see full requests/responses
+    o.LogTextLimit = 500;
     o.VerbosityLevel = 0;
     o.Options.KeystoreType = new KeyStoreTypeDirectory("D:/Temp/keys");
 });
@@ -33,8 +33,7 @@ builder.Services.Configure<TonProofOptions>(o =>
 });
 
 var tonApiOptions = configuration.GetSection(TonApiSettings.TonApi).Get<TonApiSettings>();
-builder.Services.AddHttpClient<IPublicKeyProvider>(
-    "TonApiHttpClient",
+builder.Services.AddHttpClient<IPublicKeyProvider, TonApiPublicKeyProvider>(
     client =>
     {
         client.BaseAddress = new Uri(tonApiOptions.BaseAddress);
@@ -43,14 +42,13 @@ builder.Services.AddHttpClient<IPublicKeyProvider>(
             client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tonApiOptions.Token}");
         }
     }).AddStandardResilienceHandler();
+//builder.Services.AddSingleton<IPublicKeyProvider, TonLibPublicKeyProvider>();
 
 builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
 // Add services to the container.
 builder.Services.AddSingleton<ITonClient, TonClient>();
-//builder.Services.AddSingleton<IPublicKeyProvider, TonLibPublicKeyProvider>();
-builder.Services.AddSingleton<IPublicKeyProvider, TonApiPublicKeyProvider>();
 builder.Services.AddSingleton<ITonProofService, TonProofService>();
 
 var settingOptions = configuration.GetSection(SettingOptions.Tokens).Get<SettingOptions>();

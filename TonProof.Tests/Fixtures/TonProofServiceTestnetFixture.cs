@@ -1,2 +1,0 @@
-﻿namespace TonProof.Tests.Fixtures;
-

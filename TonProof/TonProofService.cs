@@ -85,9 +85,7 @@ public class TonProofService : ITonProofService
             return VerifyResult.PublicKeyMismatch;
         }
 
-        var wantedAddress = await this.tonClient
-            .GetAccountAddressAsync(requestRaw.InitState, cancellationToken: cancellationToken)
-            .ConfigureAwait(false);
+        var wantedAddress = await this.tonClient.GetAccountAddress(requestRaw.InitState).ConfigureAwait(false);
         if (!AddressUtils.Instance.AddressEquals(wantedAddress.Value, requestRaw.AddressBytes))
         {
             this.logger.LogDebug(
@@ -118,7 +116,7 @@ public class TonProofService : ITonProofService
         var msg = this.CreateMessage(requestRaw);
         var msgHash = SHA256.HashData(msg);
         var algorithm = SignatureAlgorithm.Ed25519;
-        
+
         var pKey = PublicKey.Import(
             algorithm,
             Convert.FromHexString(requestRaw.PublicKey).AsSpan(),

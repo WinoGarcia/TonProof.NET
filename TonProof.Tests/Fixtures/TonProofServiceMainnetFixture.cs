@@ -1,9 +1,9 @@
 ﻿namespace TonProof.Tests.Fixtures;
 
-public class TonProofServiceMainnetFixture() : TonProofServiceFixtureBase(true);
+public class TonProofServiceMainnetFixture() : TonProofServiceFixtureBase(true, false);
 
-public class PublicKeyProviderMainnetFixture() : PublicKeyProviderFixtureBase(true);
+public class PublicKeyProviderMainnetFixture() : TonProofServiceFixtureBase(true, true);
 
-public class TonProofServiceTestnetFixture() : TonProofServiceFixtureBase(false);
+public class TonProofServiceTestnetFixture() : TonProofServiceFixtureBase(false, false);
 
-public class  PublicKeyProviderTestnetFixture() : PublicKeyProviderFixtureBase(false);
+public class  PublicKeyProviderTestnetFixture() : TonProofServiceFixtureBase(false, true);

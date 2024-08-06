@@ -2,7 +2,6 @@
 using TonLibDotNet.Types;
 using TonLibDotNet.Types.Smc;
 using TonLibDotNet.Utils;
-using TonProof.Extensions;
 
 // ReSharper disable once CheckNamespace
 namespace TonProof;
@@ -13,7 +12,7 @@ namespace TonProof;
 /// <remarks>
 /// The TonClient uses a direct connection to the LiteServer to retrieve the public key.
 /// </remarks>
-public class TonLibPublicKeyProvider : IPublicKeyProvider, IDisposable
+public class TonLibPublicKeyProvider : IPublicKeyProvider
 {
     #region Private Fields
 
@@ -37,17 +36,16 @@ public class TonLibPublicKeyProvider : IPublicKeyProvider, IDisposable
     /// </summary>
     /// <param name="address">The address of the wallet.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns></returns>
+    /// <returns>The public key in hex format.</returns>
+    /// <exception cref="TonLibNonZeroExitCodeException">Thrown if the request to the lite server was unsuccessful.</exception>
     public async Task<string> GetPublicKeyAsync(string address, CancellationToken cancellationToken = default)
     {
-        await this.tonClient.InitIfNeeded().ConfigureAwait(false);
+        await this.tonClient.InitIfNeeded(cancellationToken).ConfigureAwait(false);
         await this.tonClient.Sync().ConfigureAwait(false);
-        var smc = await this.tonClient.SmcLoadAsync(new AccountAddress(address), cancellationToken).ConfigureAwait(false);
+        var smc = await this.tonClient.SmcLoad(new AccountAddress(address)).ConfigureAwait(false);
 
-        var smcPublicKey = await this.tonClient
-            .SmcRunGetMethodAsync(smc.Id, new MethodIdName("get_public_key"), cancellationToken: cancellationToken)
-            .ConfigureAwait(false);
-        await this.tonClient.SmcForgetAsync(smc.Id, cancellationToken).ConfigureAwait(false);
+        var smcPublicKey = await this.tonClient.SmcRunGetMethod(smc.Id, new MethodIdName("get_public_key")).ConfigureAwait(false);
+        await this.tonClient.SmcForget(smc.Id).ConfigureAwait(false);
 
         TonLibNonZeroExitCodeException.ThrowIfNonZero(smcPublicKey.ExitCode);
 
@@ -55,9 +53,4 @@ public class TonLibPublicKeyProvider : IPublicKeyProvider, IDisposable
     }
 
     #endregion
-
-    public void Dispose()
-    {
-        // TODO release managed resources here
-    }
 }

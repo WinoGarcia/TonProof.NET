@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TonLibDotNet;
 using TonProof.Demo.Types;
-using TonProof.Extensions;
 
 namespace TonProof.Demo.Controllers;
 
@@ -37,7 +36,7 @@ public sealed class AccountController : ControllerBase
     public async Task<ActionResult<BalanceResponse>> GetBalance(
         CancellationToken cancellationToken)
     {
-        await this.tonClient.InitIfNeededAsync(cancellationToken);
+        await this.tonClient.InitIfNeeded(cancellationToken);
 
         var address = this.GetUserAddress();
         var ast = await this.tonClient.GetAccountState(address);

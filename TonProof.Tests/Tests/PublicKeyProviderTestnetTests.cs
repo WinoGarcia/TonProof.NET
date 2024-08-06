@@ -1,6 +1,6 @@
 ﻿using TonProof.Tests.Fixtures;
 
-namespace TonProof.Tests.VerifyTests;
+namespace TonProof.Tests.Tests;
 
 [Collection(PublicKeyTestnetCollection.Definition)]
 public class PublicKeyProviderTestnetTests(PublicKeyProviderTestnetFixture fixtureBase)
@@ -35,6 +35,28 @@ public class PublicKeyProviderTestnetTests(PublicKeyProviderTestnetFixture fixtu
         var result = await publicKeyProvider.GetPublicKeyAsync(address, this.cts.Token);
 
         Assert.Equal(result, publicKey);
+    }
+    
+    [Theory]
+    [InlineData("0:7afd7563d8fd084d35060278320769743905983b8ea43c5b16fb6e3dc0a190dd", "e635249f6b3fbaf9742ae1d09d8f6f01b6082ff9256d719006329405019f3198")]
+    public async Task TonApiPublicKeysNotEqual(string address, string publicKey)
+    {
+        var publicKeyProvider = this.getTonApiProvider();
+
+        var result = await publicKeyProvider.GetPublicKeyAsync(address, this.cts.Token);
+
+        Assert.NotEqual(result, publicKey);
+    }
+
+    [Theory]
+    [InlineData("0:7afd7563d8fd084d35060278320769743905983b8ea43c5b16fb6e3dc0a190dd", "e635249f6b3fbaf9742ae1d09d8f6f01b6082ff9256d719006329405019f3198")]
+    public async Task TonLibPublicKeysNotEqual(string address, string publicKey)
+    {
+        var publicKeyProvider = await this.getTonLibProvider();
+
+        var result = await publicKeyProvider.GetPublicKeyAsync(address, this.cts.Token);
+
+        Assert.NotEqual(result, publicKey);
     }
 
     #endregion

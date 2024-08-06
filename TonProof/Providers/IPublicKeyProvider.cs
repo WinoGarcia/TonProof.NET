@@ -11,6 +11,6 @@ public interface IPublicKeyProvider
     /// </summary>
     /// <param name="address">The address of the wallet.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns></returns>
+    /// <returns>The public key in hex format.</returns>
     Task<string> GetPublicKeyAsync(string address, CancellationToken cancellationToken = default);
 }
