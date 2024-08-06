@@ -8,43 +8,43 @@ namespace TonProof.Types;
 /// <seealso href="https://github.com/ton-connect/demo-dapp-backend?tab=readme-ov-file"/>
 /// </summary>
 public class CheckProofRequest
-***REMOVED***
+{
     [JsonPropertyName("address")]
-    public string Address ***REMOVED*** get; set; ***REMOVED***
+    public string Address { get; set; }
     
     [JsonPropertyName("network")]
-    public string Network ***REMOVED*** get; set; ***REMOVED***
+    public string Network { get; set; }
     
     [JsonPropertyName("public_key")]
-    public string PublicKey ***REMOVED*** get; set; ***REMOVED***
+    public string PublicKey { get; set; }
     
     [JsonPropertyName("proof")]
-    public Proof Proof ***REMOVED*** get; set; ***REMOVED***
-***REMOVED***
+    public Proof Proof { get; set; }
+}
 
 public record Proof
-***REMOVED***
+{
     [JsonPropertyName("timestamp")]
-    public long Timestamp ***REMOVED*** get; set; ***REMOVED***
+    public long Timestamp { get; set; }
     
     [JsonPropertyName("domain")]
-    public Domain Domain ***REMOVED*** get; set; ***REMOVED***
+    public Domain Domain { get; set; }
     
     [JsonPropertyName("signature")]
-    public string Signature ***REMOVED*** get; set; ***REMOVED***
+    public string Signature { get; set; }
     
     [JsonPropertyName("payload")]
-    public string Payload ***REMOVED*** get; set; ***REMOVED***
+    public string Payload { get; set; }
     
     [JsonPropertyName("state_init")]
-    public string StateInit ***REMOVED*** get; set; ***REMOVED***
-***REMOVED***
+    public string StateInit { get; set; }
+}
 
 public record Domain
-***REMOVED***
+{
     [JsonPropertyName("LengthBytes")]
-    public uint LengthBytes ***REMOVED*** get; set; ***REMOVED***
+    public uint LengthBytes { get; set; }
 
     [JsonPropertyName("value")]
-    public string Value ***REMOVED*** get; set; ***REMOVED***
-***REMOVED***
+    public string Value { get; set; }
+}

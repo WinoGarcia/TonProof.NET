@@ -15,19 +15,34 @@ var configuration = builder.Configuration;
 builder.Services.Configure<SettingOptions>(
     configuration.GetSection(SettingOptions.Tokens));
 
+builder.Services.Configure<TonApiSettings>(
+    configuration.GetSection(TonApiSettings.TonApi));
+
 builder.Services.Configure<TonOptions>(o =>
-***REMOVED***
+{
     o.UseMainnet = false;
-    o.LogTextLimit = 0; // Set to 0 to see full requests/responses
+    o.LogTextLimit = 500;
     o.VerbosityLevel = 0;
     o.Options.KeystoreType = new KeyStoreTypeDirectory("D:/Temp/keys");
-***REMOVED***);
+});
 
 builder.Services.Configure<TonProofOptions>(o =>
-***REMOVED***
+{
     o.ValidAuthTime = 24 * 60 * 60 * 30;
     o.AllowedDomains = ["winogarcia.github.io"];
-***REMOVED***);
+});
+
+var tonApiOptions = configuration.GetSection(TonApiSettings.TonApi).Get<TonApiSettings>();
+builder.Services.AddHttpClient<IPublicKeyProvider, TonApiPublicKeyProvider>(
+    client =>
+    {
+        client.BaseAddress = new Uri(tonApiOptions.BaseAddress);
+        if (!string.IsNullOrEmpty(tonApiOptions.Token))
+        {
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tonApiOptions.Token}");
+        }
+    }).AddStandardResilienceHandler();
+//builder.Services.AddSingleton<IPublicKeyProvider, TonLibPublicKeyProvider>();
 
 builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
@@ -40,9 +55,9 @@ var settingOptions = configuration.GetSection(SettingOptions.Tokens).Get<Setting
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
-    ***REMOVED***
+    {
         options.TokenValidationParameters = new TokenValidationParameters
-        ***REMOVED***
+        {
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
@@ -50,8 +65,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = settingOptions.Jwt.Issuer,
             ValidAudience = settingOptions.Jwt.Audience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settingOptions.Jwt.SecretKey))
-    ***REMOVED***;
-***REMOVED***);
+        };
+    });
 
 builder.Services.AddControllers();
 
@@ -63,15 +78,15 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
-***REMOVED***
+{
     app.UseSwagger();
     app.UseSwaggerUI(s =>
-    ***REMOVED***
+    {
         s.SwaggerEndpoint("/swagger/auth/swagger.json", "auth");
         s.SwaggerEndpoint("/swagger/account/swagger.json", "account");
         s.RoutePrefix = "swagger";
-***REMOVED***);
-***REMOVED***
+    });
+}
 
 app.UseHttpsRedirection();
 

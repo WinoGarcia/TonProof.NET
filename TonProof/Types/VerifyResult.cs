@@ -4,7 +4,7 @@
 /// Represents the result of the proof verification process.
 /// </summary>
 public enum VerifyResult
-***REMOVED***
+{
     /// <summary>
     /// The proof is valid and the verification was successful.
     /// </summary>
@@ -36,7 +36,12 @@ public enum VerifyResult
     ProofExpired = -5,
 
     /// <summary>
-    /// Invalid InitState structure 
+    /// Invalid InitState structure.
     /// </summary>
-    InvalidInitState = -6
-***REMOVED***
+    InvalidInitState = -6,
+    
+    /// <summary>
+    /// The address lacks the correct format and omits a workchain.
+    /// </summary>
+    InvalidAddress = -7
+}

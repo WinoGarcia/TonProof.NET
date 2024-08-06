@@ -6,43 +6,43 @@ namespace TonProof;
 /// Provides configuration options for proof verification.
 /// </summary>
 public class TonProofOptions
-***REMOVED***
+{
     /// <summary>
     /// The prefix used in TonConnect for identification.
     /// </summary>
-    public string TonConnectPrefix ***REMOVED*** get; set; ***REMOVED*** = "ton-connect";
+    public string TonConnectPrefix { get; set; } = "ton-connect";
 
     /// <summary>
     /// The prefix used for proof items in the system.
     /// </summary>
-    public string TonProofPrefix ***REMOVED*** get; set; ***REMOVED*** = "ton-proof-item-v2/";
+    public string TonProofPrefix { get; set; } = "ton-proof-item-v2/";
 
     /// <summary>
     /// Maximum allowed time (in seconds) for a proof to be considered valid.
     /// Default is 15 minutes (900 seconds).
     /// </summary>
-    public long ValidAuthTime ***REMOVED*** get; set; ***REMOVED*** = 15 * 60; // 15 minutes
+    public long ValidAuthTime { get; set; } = 15 * 60; // 15 minutes
 
     /// <summary>
     /// A collection of allowed domains that are considered valid for proof verification.
     /// </summary>
-    public IEnumerable<string> AllowedDomains ***REMOVED*** get; set; ***REMOVED*** = Enumerable.Empty<string>();
+    public IEnumerable<string> AllowedDomains { get; set; } = Enumerable.Empty<string>();
 
     /// <summary>
     /// A dictionary mapping known wallet contract codes to their corresponding creation functions.
     /// </summary>
-    public Dictionary<string, Func<IWalletContract>> KnownWallets ***REMOVED*** get; set; ***REMOVED*** = new()
-    ***REMOVED***
-        ***REMOVED*** WalletContractV1R1.CodeBase64, WalletContractV1R1.Create ***REMOVED***,
-        ***REMOVED*** WalletContractV1R2.CodeBase64, WalletContractV1R2.Create ***REMOVED***,
-        ***REMOVED*** WalletContractV1R3.CodeBase64, WalletContractV1R3.Create ***REMOVED***,
+    public Dictionary<string, Func<IWalletContract>> KnownWallets { get; set; } = new()
+    {
+        { WalletContractV1R1.CodeBase64, WalletContractV1R1.Create },
+        { WalletContractV1R2.CodeBase64, WalletContractV1R2.Create },
+        { WalletContractV1R3.CodeBase64, WalletContractV1R3.Create },
 
-        ***REMOVED*** WalletContractV2R1.CodeBase64, WalletContractV2R1.Create ***REMOVED***,
-        ***REMOVED*** WalletContractV2R2.CodeBase64, WalletContractV2R2.Create ***REMOVED***,
+        { WalletContractV2R1.CodeBase64, WalletContractV2R1.Create },
+        { WalletContractV2R2.CodeBase64, WalletContractV2R2.Create },
 
-        ***REMOVED*** WalletContractV3R1.CodeBase64, WalletContractV3R1.Create ***REMOVED***,
-        ***REMOVED*** WalletContractV3R2.CodeBase64, WalletContractV3R2.Create ***REMOVED***,
+        { WalletContractV3R1.CodeBase64, WalletContractV3R1.Create },
+        { WalletContractV3R2.CodeBase64, WalletContractV3R2.Create },
 
-        ***REMOVED*** WalletContractV4R2.CodeBase64, WalletContractV4R2.Create ***REMOVED***
-***REMOVED***;
-***REMOVED***
+        { WalletContractV4R2.CodeBase64, WalletContractV4R2.Create }
+    };
+}

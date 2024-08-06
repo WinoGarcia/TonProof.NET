@@ -6,7 +6,7 @@ namespace TonProof;
 /// Provides functionality to verify proofs in Ton Connect.
 /// </summary>
 public interface ITonProofService
-***REMOVED***
+{
     /// <summary>
     /// Verifies the proof based on the given request.
     /// </summary>
@@ -18,4 +18,4 @@ public interface ITonProofService
     /// <see cref="VerifyResult"/> indicating the outcome of the verification.
     /// </returns>
     Task<VerifyResult> VerifyAsync(CheckProofRequest request, CancellationToken cancellationToken = default);
-***REMOVED***
+}

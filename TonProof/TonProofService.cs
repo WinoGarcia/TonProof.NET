@@ -1,24 +1,25 @@
 ﻿using System.Buffers.Binary;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NSec.Cryptography;
 using TonProof.Extensions;
 using TonProof.Types;
 using TonLibDotNet;
 using TonLibDotNet.Cells;
-using TonLibDotNet.Types;
-using TonLibDotNet.Types.Smc;
 using TonLibDotNet.Utils;
 
 namespace TonProof;
 
 /// <inheritdoc/>
 public class TonProofService : ITonProofService
-***REMOVED***
+{
     #region Private Fields
 
     private readonly ITonClient tonClient;
+    private readonly IPublicKeyProvider publicKeyProvider;
     private readonly TonProofOptions options;
     private readonly ILogger<TonProofService> logger;
 
@@ -32,15 +33,17 @@ public class TonProofService : ITonProofService
     public TonProofService(
         ILogger<TonProofService> logger,
         ITonClient tonClient,
-        Microsoft.Extensions.Options.IOptions<TonProofOptions> options)
-    ***REMOVED***
+        IPublicKeyProvider publicKeyProvider,
+        IOptions<TonProofOptions> options)
+    {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.tonClient = tonClient ?? throw new ArgumentNullException(nameof(tonClient));
+        this.publicKeyProvider = publicKeyProvider ?? throw new ArgumentNullException(nameof(publicKeyProvider));
         this.options = options.Value;
 
         this.tonConnectPrefixBytes = Encoding.UTF8.GetBytes(this.options.TonConnectPrefix);
         this.tonProofPrefixBytes = Encoding.UTF8.GetBytes(this.options.TonProofPrefix);
-***REMOVED***
+    }
 
     #endregion
 
@@ -48,97 +51,93 @@ public class TonProofService : ITonProofService
 
     /// <inheritdoc/>
     public async Task<VerifyResult> VerifyAsync(CheckProofRequest request, CancellationToken cancellationToken = default)
-    ***REMOVED***
+    {
         var requestRaw = new CheckProofRequestRaw(request);
 
-        if (requestRaw.InitState is null)
-        ***REMOVED***
+        if (!requestRaw.Workchain.HasValue)
+        {
             this.logger.LogDebug(
-                "The InitState ***REMOVED***InitState***REMOVED*** structure is invalid. This could indicate that the contract is not a well-known wallet",
+                "Address {Address} is invalid. The address provided lacks the correct format and omits a workchain",
+                request.Address);
+            return VerifyResult.InvalidAddress;
+        }
+
+        if (requestRaw.InitState is null)
+        {
+            this.logger.LogDebug(
+                "The InitState {InitState} structure is invalid. This could indicate that the contract is not a well-known wallet",
                 request.Proof.StateInit);
             return VerifyResult.InvalidInitState;
-    ***REMOVED***
+        }
 
         var isParsed = this.TryParseWalletPublicKey(requestRaw.InitState.Code, requestRaw.Data, out var walletPublicKey);
 
         var publicKey = isParsed
             ? walletPublicKey
-            : await this.GetWalletPublicKeyAsync(new AccountAddress(requestRaw.Address), cancellationToken).ConfigureAwait(false);
+            : await this.publicKeyProvider.GetPublicKeyAsync(requestRaw.Address, cancellationToken);
 
-        if (!requestRaw.PublicKeyBytes.SequenceEqual(publicKey))
-        ***REMOVED***
+        if (!requestRaw.PublicKey.Equals(publicKey, StringComparison.OrdinalIgnoreCase))
+        {
             this.logger.LogDebug(
-                "Public key mismatch: provided public key ***REMOVED***ProvidedPk***REMOVED*** does not match the parsed or retrieved public key ***REMOVED***RetrievedPk***REMOVED***",
+                "Public key mismatch: provided public key {ProvidedPk} does not match the parsed or retrieved public key {RetrievedPk}",
                 requestRaw.PublicKey,
-                Convert.ToHexString(publicKey));
+                publicKey);
             return VerifyResult.PublicKeyMismatch;
-    ***REMOVED***
+        }
 
-        var wantedAddress = await this.tonClient
-            .GetAccountAddressAsync(requestRaw.InitState, cancellationToken: cancellationToken)
-            .ConfigureAwait(false);
+        var wantedAddress = await this.tonClient.GetAccountAddress(requestRaw.InitState).ConfigureAwait(false);
         if (!AddressUtils.Instance.AddressEquals(wantedAddress.Value, requestRaw.AddressBytes))
-        ***REMOVED***
+        {
             this.logger.LogDebug(
-                "Address mismatch: expected address ***REMOVED***WantedAddress***REMOVED***, but got ***REMOVED***Address***REMOVED***",
+                "Address mismatch: expected address {WantedAddress}, but got {Address}",
                 wantedAddress.Value,
                 requestRaw.Address);
             return VerifyResult.AddressMismatch;
-    ***REMOVED***
+        }
 
         if (!this.options.AllowedDomains.Contains(requestRaw.Proof.Domain.Value))
-        ***REMOVED***
-            this.logger.LogDebug("Domain not allowed: ***REMOVED***Domain***REMOVED*** is not in the list of allowed domains",
+        {
+            this.logger.LogDebug("Domain not allowed: {Domain} is not in the list of allowed domains",
                 requestRaw.Proof.Domain.Value);
             return VerifyResult.DomainNotAllowed;
-    ***REMOVED***
+        }
 
         var dateTime = DateTimeOffset.FromUnixTimeSeconds(requestRaw.Proof.Timestamp).UtcDateTime;
         var proofDatetime = dateTime.AddSeconds(this.options.ValidAuthTime);
         if (proofDatetime < DateTime.UtcNow)
-        ***REMOVED***
+        {
             this.logger.LogDebug(
-                "Proof expired: the proof DateTimes ***REMOVED***ProofDateTime***REMOVED*** is outside the allowed validity period: ***REMOVED***ValidAuthTime***REMOVED*** sec.",
+                "Proof expired: the proof DateTimes {ProofDateTime} is outside the allowed validity period: {ValidAuthTime} sec.",
                 proofDatetime,
                 this.options.ValidAuthTime);
             return VerifyResult.ProofExpired;
-    ***REMOVED***
+        }
 
         var msg = this.CreateMessage(requestRaw);
         var msgHash = SHA256.HashData(msg);
-
         var algorithm = SignatureAlgorithm.Ed25519;
-        var pKey = PublicKey.Import(algorithm, requestRaw.PublicKeyBytes, KeyBlobFormat.RawPublicKey);
 
-        var result = algorithm.Verify(pKey, msgHash, Convert.FromBase64String(requestRaw.Proof.Signature));
+        var pKey = PublicKey.Import(
+            algorithm,
+            Convert.FromHexString(requestRaw.PublicKey).AsSpan(),
+            KeyBlobFormat.RawPublicKey);
+
+        var result = algorithm.Verify(
+            pKey,
+            msgHash,
+            Convert.FromBase64String(requestRaw.Proof.Signature).AsSpan());
 
         return result ? VerifyResult.Valid : VerifyResult.HashMismatch;
-***REMOVED***
+    }
 
     #endregion
 
     #region Private Methods
 
-    private async Task<byte[]> GetWalletPublicKeyAsync(AccountAddress address, CancellationToken cancellationToken)
-    ***REMOVED***
-        await this.tonClient.InitIfNeededAsync(cancellationToken).ConfigureAwait(false);
-        await this.tonClient.SyncAsync(cancellationToken).ConfigureAwait(false);
-        var smc = await this.tonClient.SmcLoadAsync(address, cancellationToken).ConfigureAwait(false);
-
-        var smcPublicKey = await this.tonClient
-            .SmcRunGetMethodAsync(smc.Id, new MethodIdName("get_public_key"), cancellationToken: cancellationToken)
-            .ConfigureAwait(false);
-        await this.tonClient.SmcForgetAsync(smc.Id, cancellationToken).ConfigureAwait(false);
-
-        TonLibNonZeroExitCodeException.ThrowIfNonZero(smcPublicKey.ExitCode);
-
-        return smcPublicKey.Stack[0].ToBigIntegerBytes();
-***REMOVED***
-
     private byte[] CreateMessage(CheckProofRequestRaw request)
-    ***REMOVED***
+    {
         Span<byte> wc = stackalloc byte[4];
-        BinaryPrimitives.WriteUInt32BigEndian(wc, request.Workchain);
+        BinaryPrimitives.WriteUInt32BigEndian(wc, request.Workchain!.Value);
 
         Span<byte> ts = stackalloc byte[8];
         BinaryPrimitives.WriteUInt64LittleEndian(ts, (ulong)request.Proof.Timestamp);
@@ -178,7 +177,7 @@ public class TonProofService : ITonProofService
         //  utf8_encode("ton-connect") ++
         //  sha256(message)
 
-        ReadOnlySpan<byte> ff = stackalloc byte[2] ***REMOVED*** 0xFF, 0xFF ***REMOVED***;
+        ReadOnlySpan<byte> ff = stackalloc byte[2] { 0xFF, 0xFF };
         message = new byte[ff.Length + this.tonConnectPrefixBytes.Length + msgHash.Length].AsSpan();
         offset = 0;
 
@@ -187,22 +186,22 @@ public class TonProofService : ITonProofService
         message.CopyFrom(msgHash, ref offset);
 
         return message.ToArray();
-***REMOVED***
+    }
 
-    private bool TryParseWalletPublicKey(string code, Cell data, out byte[] publicKey)
-    ***REMOVED***
+    private bool TryParseWalletPublicKey(string code, Cell data, [NotNullWhen(true)] out string publicKey)
+    {
         if (this.options.KnownWallets.TryGetValue(code, out var knownWallet))
-        ***REMOVED***
+        {
             var wallet = knownWallet.Invoke();
             publicKey = wallet.LoadPublicKey(data);
             return true;
-    ***REMOVED***
+        }
 
-        this.logger.LogDebug("Failed to parse wallet publicKey for unknown code: ***REMOVED***Code***REMOVED***", code);
+        this.logger.LogDebug("Failed to parse wallet publicKey for unknown code: {Code}", code);
 
-        publicKey = Array.Empty<byte>();
+        publicKey = null;
         return false;
-***REMOVED***
+    }
 
     #endregion
-***REMOVED***
+}

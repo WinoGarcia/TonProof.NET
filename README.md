@@ -16,21 +16,35 @@ Set up the [TonProofOptions](/TonProof/TonProofOptions.cs) with appropriate valu
 
 Example configuration:
 ```csharp
-var builder = WebApplication.CreateBuilder(args);
-
 builder.Services.Configure<TonProofOptions>(o =>
-***REMOVED***
+{
   o.ValidAuthTime = 30 * 60; // 30 minutes
-  o.AllowedDomains = new[] ***REMOVED*** "example.com" ***REMOVED***;
-  // Add other known wallet contracts...
-  // o.KnownWallets.Add(WalletContractV5.CodeBase64, WalletContractV5.Create);
-***REMOVED***);
+  o.AllowedDomains = new[] { "example.com" };
+  // o.KnownWallets.Add(WalletContractV5.CodeBase64, WalletContractV5.Create); // Add other known wallet contracts
+});
+
+builder.Services.AddHttpClient<IPublicKeyProvider, TonApiPublicKeyProvider>(
+  client =>
+  {
+    client.BaseAddress = new Uri(tonApiOptions.BaseAddress);
+    if (!string.IsNullOrEmpty(tonApiOptions.Token))
+    {
+      client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tonApiOptions.Token}");
+    }
+  }).AddStandardResilienceHandler();
 
 builder.Services.AddSingleton<ITonClient, TonClient>();
 builder.Services.AddSingleton<ITonProofService, TonProofService>();
-
-var app = builder.Build();
 ```
+
+If the public key cannot be extracted from the `InitState` of the [known wallets](/TonProof/Types/Wallets), the service will call the `GetPublicKeyAsync` method from the [IPublicKeyProvider](/TonProof/Providers/IPublicKeyProvider.cs).
+
+The library offers the `IPublicKeyProvider` interface with two implementations:  
+- **TonLibPublicKeyProvider** calls `get_public_key` method on the smart contract via Lite server.  
+- **TonApiPublicKeyProvider** calls the HTTP method from [TonApi](https://tonapi.io/).
+
+If these providers don't fit your requirements, you can create your own by implementing the `IPublicKeyProvider` interface.
+
 For more information, please refer to the complete example [TonProof.Demo/Program.cs](/TonProof.Demo/Program.cs)
 
 ### Using the service for authentication
@@ -53,22 +67,22 @@ url -X 'POST' \
 ```csharp
 [AllowAnonymous]
 public ActionResult<GeneratePayloadResponse> GeneratePayload()
-***REMOVED***
+{
   var payload = this.CreatePayloadToken();
 
   var response = new GeneratePayloadResponse()
-  ***REMOVED***
+  {
       Payload = payload
-  ***REMOVED***;
+  };
   return this.Ok(response);
-***REMOVED***
+}
 ```
 <details>
 <summary>Response</summary>
 <pre>
-***REMOVED***
+{
   "payload": "string"
-***REMOVED***
+}
 </pre>
 </details>
 
@@ -83,54 +97,54 @@ curl -X 'POST' \
   'https://host/Auth/CheckProof' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
-  -d '***REMOVED***
+  -d '{
   "address": "0:13f04fa2a978c...",
   "network": "-3",
   "public_key": "c5134fcb...",
-  "proof": ***REMOVED***
+  "proof": {
     "timestamp": 1721812530,
-    "domain": ***REMOVED***
+    "domain": {
       "LengthBytes": 20,
       "value": "winogarcia.github.io"
-***REMOVED***
+    },
     "signature": "YlhjR9vEhyGyYbr...",
     "payload": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
     "state_init": "te6cc..."
-  ***REMOVED***
-***REMOVED***'
+  }
+}'
 </pre>
 </details>
 
 ```csharp
 [AllowAnonymous]
 public async Task<ActionResult<CheckProofResponse>> CheckProof(CheckProofRequest request, CancellationToken cancellationToken)
-***REMOVED***
+{
   var verifyResult = await this.TonProofService.VerifyAsync(request, cancellationToken);
   if (verifyResult != VerifyResult.Valid)
-  ***REMOVED***
-    return this.BadRequest($"Invalid proof: ***REMOVED***Enum.GetName(verifyResult)***REMOVED***");
-  ***REMOVED***
+  {
+    return this.BadRequest($"Invalid proof: {Enum.GetName(verifyResult)}");
+  }
 
   var payload = request.Proof.Payload;
   if (!this.ValidateToken(payload))
-  ***REMOVED***
+  {
     return this.BadRequest("Invalid payload");
-  ***REMOVED***
+  }
 
   var token = this.CreateToken(payload, request.Address);
 
   return this.Ok(new CheckProofResponse()
-  ***REMOVED***
+  {
     Token = token
-  ***REMOVED***);
-***REMOVED***
+  });
+}
 ```
 <details>
 <summary>Response</summary>
 <pre>
-***REMOVED***
+{
   "token": "string"
-***REMOVED***
+}
 </pre>
 </details>
 
@@ -153,25 +167,25 @@ curl -X 'POST' \
 ```csharp
 [Authorize]
 public async Task<ActionResult<BalanceResponse>> GetBalance(CancellationToken cancellationToken)
-***REMOVED***
+{
   await this.tonClient.InitIfNeededAsync(cancellationToken);
 
   var address = this.GetUserAddress();
   var ast = await this.tonClient.GetAccountState(address);
 
   var response = new BalanceResponse
-  ***REMOVED***
+  {
     Amount = ast.Balance.ToString()
-  ***REMOVED***;
+  };
   return this.Ok(response);
-***REMOVED***
+}
 ```
 <details>
 <summary>Response</summary>
 <pre>
-***REMOVED***
+{
   "amount": "777777"
-***REMOVED***
+}
 </pre>
 </details>
 
