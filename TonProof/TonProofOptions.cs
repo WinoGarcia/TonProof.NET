@@ -43,6 +43,8 @@ public class TonProofOptions
         { WalletContractV3R1.CodeBase64, WalletContractV3R1.Create },
         { WalletContractV3R2.CodeBase64, WalletContractV3R2.Create },
 
-        { WalletContractV4R2.CodeBase64, WalletContractV4R2.Create }
+        { WalletContractV4R2.CodeBase64, WalletContractV4R2.Create },
+
+        { WalletContractV5R1.CodeBase64, WalletContractV5R1.Create }
     };
 }
